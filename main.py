@@ -13,7 +13,7 @@ TILE_SIZE = 2
 RED = '\033[41m'
 BLUE = '\033[44m'
 GREEN = '\033[42m'
-PURPLE = '\033[45m'
+YELLOW = '\033[103m'
 GREY = '\033[100m'
 WHITE = '\033[107m'
 CYAN = '\033[46m'
@@ -25,7 +25,7 @@ CANDIES_REP = [
     ('Red', RED),
     ('Blue', BLUE),
     ('Green', GREEN),
-    ('Purple', PURPLE),
+    ('Yellow', YELLOW),
     ('Color Bomb', GREY),
     ('Line Bomb', WHITE),
     ('Area Bomb', CYAN),
@@ -35,7 +35,7 @@ CANDIES_INFO = {
     'Red': 0,
     'Blue': 0,
     'Green': 0,
-    'Purple': 0,
+    'Yellow': 0,
     'Color Bomb': 0,
     'Line Bomb': 0,
     'Area Bomb': 0,
@@ -75,8 +75,10 @@ def main():
             pass
         elif user_input == 'L': # Load - TODO
             pass
-        elif user_input == 'V': # View Data - TODO
-            pass
+        elif user_input == 'V': # View Data
+            display_player_info(player_info)
+            print('Enter anything to return.')
+            input(' > ')
         elif user_input == 'R': # Read rules
             display_rules()
             print('Enter anything to return.')
@@ -96,45 +98,47 @@ def display_main_menu():
     print('\t(Q) Quit\n')
 
 def display_player_info(player_info):
+    RIGHT_PADDING = 10
+
     '''Displays the player's information.
     Args:
         player_info: A dictionary representing the player's information.
     '''
-    print(f'Highest level: {player_info['highest_level']}')
-    print(f'Total Crushed: {player_info['total_crushed']}')
+    print(f'\nHighest level: {player_info['Highest Level']}')
+    print(f'Total Crushed: {player_info['Total Crushed']}')
     print('All Candies Crushed:')
     
     for pair in CANDIES_REP:
-        print(f'{CANDIES_REP[CANDIES_REP_TYPE]} {print_tile(CANDIES_REP[CANDIES_REP_COLOR])}: {player_info[CANDIES_REP_TYPE]}')
+        print(f'\t{pair[CANDIES_REP_TYPE].ljust(RIGHT_PADDING)} {get_tile_string(pair[CANDIES_REP_COLOR])}: {player_info['Candies Crushed'][pair[CANDIES_REP_TYPE]]}')
 
     print()
 
 def display_rules():
     '''Displays the rules.'''
-    print('''
-    How to Play:
-    \t1. Once you press "P", you will be either be able to choose a difficulty or leave where you left off.
-    \t2. Then, you will be presented with a board of colored tiles, or "candies".
-    \t3. Your objective is to clear candies by matching three of the same color through adjacent swaps.
-    \t4. Objectives will determine the condition for clearing the level.
-    \t\ta. If this objective is not met before a set number of moves has been used, you will lose the level.
-    \t\tb. 3 losses will result in a game over, which will reset your level clear streak.
-    \t5. Throughout levels, special candies with unique functions will appear and assist with clearing the level.
-    \t6. Additionally, blockers will prevent nearby candies from being swapped to their position.
-    ''')
+    print('''How to Play:
+          \t1. Once you press "P", you will be either be able to choose a difficulty or leave where you left off.
+          \t2. Then, you will be presented with a board of colored tiles, or "candies".
+          \t3. Your objective is to clear candies by matching three of the same color through adjacent swaps.
+          \t4. Objectives will determine the condition for clearing the level.
+          \t\ta. If this objective is not met before a set number of moves has been used, you will lose the level.
+          \t\tb. 3 losses will result in a game over, which will reset your level clear streak.
+          \t5. Throughout levels, special candies with unique functions will appear and assist with clearing the level.
+          \t6. Additionally, blockers will prevent nearby candies from being swapped to their position.''')
 
     print('\nColors:')
     for pair in CANDIES_REP:
-        print(f'{print_tile(CANDIES_REP[CANDIES_REP_COLOR])} - {CANDIES_REP[CANDIES_REP_TYPE]}')
+        print(f'{get_tile_string(pair[CANDIES_REP_COLOR])} - {pair[CANDIES_REP_TYPE]}')
 
     print()
-#TODO: FIX COLOR PRINTING
-def print_tile(color):
-    '''Prints a tile of a specified color.
+
+def get_tile_string(color):
+    '''Gets the string representation of a tile with a certain color.
     Args:
         color: A string representing the color of the tile.
+    Returns:
+        string: A string that displays the tile's color.
     '''
-    print(f'{color}{' ' * TILE_SIZE}{RESET}')
+    return f'{color}{' ' * TILE_SIZE}{RESET}'
 
 def prompt_user_input(valid_args, prompt):
     '''Prompts the user for specific input.
