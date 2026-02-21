@@ -1,97 +1,98 @@
-Candy Crush Clone Algorithm 
-     ● While True: 
-             ● Prompt user to play, save their game, load a file, view their information, see the rules, and exit 
-                   ○ User enters play: 
-                            ■ empty_board = 2D array with empty strigs 
-                            ■ If current_board has all empty strings: 
-                                    ● Prompt user difficulty 
-                                    ● User enters easy: 
-                                             ○ max_blockers = 0 
-                                             ○ objective_candies = 15 
-                                             ○ max_moves = 10 
-                                    ● User enters medium: 
-                                             ○ max_blockers = 3 
-                                             ○ objective_candies = 25 
-                                             ○ max_moves = 13 
-                                    ● User enters hard: ○ max_blockers = 5 
-                                             ○ objective_candies = 35 
-                                             ○ max_moves = 15
-                                    ● populate the board with candies 
-                                              ○ For each row and column 
-                                                        ■ board[row][col] = random color from available selection 
-                          ■ Else: Prompt user (y/n) if they would like to continue game 
-                                    ● If yes: 
-                                             ○ Use current_board 
-                                             ○ Use previous difficulty, moves left, and objective progress       
-                                    ● If no: 
-                                             ○ current_board = empty_board 
-                          ■ While user_input != quit 
-                                    ● While the user has not entered a row and column in range or in the proper format 
-                                              ○ Notify user of proper format 
-                                              ○ Prompt user again for position 
-                                    ● If a special candy is at the row and column 
-                                              ○ If special_candy == color bomb 
-                                                  ■ For each row and column of the board 
-                                                            ● If board[row][col] == certain color, set to empty string 
-                                                                 ○ If candy is part of objective 
-                                                                        ■ objective_progress += 1 
-                                              ○ If special_candy == vertical line bomb 
-                                                  ■ For each row 
-                                                            ● Board[row][col] = ‘’ 
-                                                                 ○ If candy in position is part of objective 
-                                                                        ■ Increase objective progress for the candy 
-                                              ○ If the special candy is a horizontal line bomb 
-                                                ■ For each col, 
-                                                            ● Board[row][col] = ‘’ 
-                                                                 ○ If candy in position is part of objective 
-                                                ■ objective_progress += 1 
-                                              ○ If special_candy == area bomb 
-                                                  ■ Iterating for left, right, up, and down: 
-                                                           ● While row and col is not out of bounds and is within the 
+Candy Crush Clone Algorithm/Pseudocode
+      While True: 
+             Prompt user to play, save their game, load a file, view their information, see the rules, and exit 
+                   User enters play: 
+                             empty_board = 2D array with empty strigs 
+                             If current_board has all empty strings: 
+                                    Prompt user difficulty 
+                                    User enters easy: 
+                                              max_blockers = 0 
+                                              objective_candies = 15 
+                                              max_moves = 10 
+                                     User enters medium: 
+                                              max_blockers = 3 
+                                              objective_candies = 25 
+                                              max_moves = 13 
+                                     User enters hard: ○ max_blockers = 5 
+                                              objective_candies = 35 
+                                              max_moves = 15
+                                     populate the board with candies 
+                                               For each row and column 
+                                                         board[row][col] = random color from available selection 
+                           Else: Prompt user (y/n) if they would like to continue game 
+                                     If yes: 
+                                              Use current_board 
+                                              Use previous difficulty, moves left, and objective progress       
+                                     If no: 
+                                              current_board = empty_board 
+                           While user_input != quit 
+                                     While the user has not entered a row and column in range or in the proper format 
+                                               Notify user of proper format 
+                                               Prompt user again for position 
+                                     If a special candy is at the row and column 
+                                               If special_candy == color bomb 
+                                                   For each row and column of the board 
+                                                             If board[row][col] == certain color, set to empty string 
+                                                                  If candy is part of objective 
+                                                                         objective_progress += 1 
+                                               If special_candy == vertical line bomb 
+                                                   For each row 
+                                                             Board[row][col] = ‘’ 
+                                                                  If candy in position is part of objective 
+                                                                         Increase objective progress for the candy 
+                                               If the special candy is a horizontal line bomb 
+                                                 For each col, 
+                                                             Board[row][col] = ‘’ 
+                                                                  If candy in position is part of objective 
+                                                 objective_progress += 1 
+                                               If special_candy == area bomb 
+                                                   Iterating for left, right, up, and down: 
+                                                            While row and col is not out of bounds and is within the 
                                                              radius 
-                                                                 ○ Board[row][col] to empty string 
-                                                                        ■ If candy in position is part of objective,  
+                                                                  Board[row][col] to empty string 
+                                                                         If candy in position is part of objective,  
                                                                             objective_progress += 1 
-                                    ● If a regular candy is at position
-                                              ○ While user has not entered a nearby position 
-                                                     ■ Notify user of proper position 
-                                                     ■ Prompt user for again for the position 
-                                              ○ swap_candies(row1, col1, row2, col2) 
-                                   ● Decrease moves left 
-                                   ● While matches can be made or candies can move downward 
-                                              ○ Print each row 
-                                              ○ Update the board 
-                                                     ■ matches = [] 
-                                                           ● for each row: 
-                                                                    ○ if same candies are adjacent
-                                                                          ■ count += 1 
-                                                                    ○ IF count % 3 == 0: 
-                                                                          ■ add positions to matches 
-                                                     ■ For match in matches: 
-                                                           ● board[row][col] to empty string 
-                                                           ● total_matches += 1 
-                                                           ● If candy in position is part of objective 
+                                     If a regular candy is at position
+                                               While user has not entered a nearby position 
+                                                      Notify user of proper position 
+                                                      Prompt user for again for the position 
+                                               swap_candies(row1, col1, row2, col2) 
+                                    Decrease moves left 
+                                    While matches can be made or candies can move downward 
+                                               Print each row 
+                                               Update the board 
+                                                      matches = [] 
+                                                            for each row: 
+                                                                     if same candies are adjacent
+                                                                           count += 1 
+                                                                     IF count % 3 == 0: 
+                                                                           add positions to matches 
+                                                      For match in matches: 
+                                                            board[row][col] to empty string 
+                                                            total_matches += 1 
+                                                            If candy in position is part of objective 
                                                                     ○ objective_progress += 1 
-                                                     ■ Bring down floating candies 
-                                  ● For each column: 
-                                          ○ Populate top with random candies 
-                                          ○ Bring down floating candies 
-                    ○ User enters save file: 
-                             ■ Open a new file for saving data 
-                             ■ Write highest level, total matches, and key-value pairs for candies crushed 
-                                  into the file 
-                             ■ Display that the data has been saved to the file 
-                    ○ User enters load file: 
-                             ■ Prompt user for file name 
-                             ■ Open provided file 
-                             ■ If file has valid data: 
-                                     ● Update variables with supplied data 
-                            ■ Else: 
-                                     ● Print invalid message 
-                    ○ User enters rules: 
-                            ■ Print rules 
-                            ■ Prompt user for input 
-                            ■ Return to main menu 
-                    ○ User enters quit: 
-                            ■ sys.exit()
+                                                      Bring down floating candies 
+                                   For each column: 
+                                           Populate top with random candies 
+                                           Bring down floating candies 
+                     User enters save file: 
+                              Open a new file for saving data 
+                              Write highest level, total matches, and key-value pairs for candies crushed 
+                               into the file 
+                              Display that the data has been saved to the file 
+                     User enters load file: 
+                              Prompt user for file name 
+                              Open provided file 
+                              If file has valid data: 
+                                      Update variables with supplied data 
+                             Else: 
+                                      Print invalid message 
+                     User enters rules: 
+                             Print rules 
+                             Prompt user for input 
+                             Return to main menu 
+                     User enters quit: 
+                             sys.exit()
+
 
