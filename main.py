@@ -7,84 +7,62 @@
 #        information to a file.
 
 import sys
-
-BOARD_SIZE = 10
-TILE_SIZE = 2
-RED = '\033[41m'
-BLUE = '\033[44m'
-GREEN = '\033[42m'
-YELLOW = '\033[103m'
-GREY = '\033[100m'
-WHITE = '\033[107m'
-CYAN = '\033[46m'
-BLACK = '\033[40m'
-RESET = '\033[0m'
-CANDIES_REP_TYPE = 0
-CANDIES_REP_COLOR = 1
-CANDIES_REP = [
-    ('Red', RED),
-    ('Blue', BLUE),
-    ('Green', GREEN),
-    ('Yellow', YELLOW),
-    ('Color Bomb', GREY),
-    ('Line Bomb', WHITE),
-    ('Area Bomb', CYAN),
-    ('Blocker', BLACK)
-]
-CANDIES_INFO = {
-    'Red': 0,
-    'Blue': 0,
-    'Green': 0,
-    'Yellow': 0,
-    'Color Bomb': 0,
-    'Line Bomb': 0,
-    'Area Bomb': 0,
-    'Blocker': 0
-}
+import game_handler
+import file_handler
+from utility import *
 
 def main():
     # Define an empty board.
-    board = get_empty_board()
+    board = []
+    game_handler.set_empty_board(board)
 
-    # Define the player info.
-    player_info = {
-        'Highest Level': 0,
-        'Total Crushed': 0,
-        'Candies Crushed': CANDIES_INFO.copy()
+    # Define the player and game data.
+    player_data = {
+        PLAYER_DATA_LEVEL_KEY: 0,
+        DATA_CANDIES_KEY: CANDIES_DATA.copy(),
+        DATA_DIFFICULTIES_KEY: DIFFICULTIES_DATA.copy()
     }
+    game_data = {}
 
-    # Define session-related info.
-    session_info = {
-        'Current Level': 0,
-        'Total Crushed': 0,
-        'Candies Crushed': CANDIES_INFO.copy()
-    }
-
+    # Allow user to choose options.
     while True:
-        # Display the main menu.
         display_main_menu()
-        user_input = prompt_user_input(('P', 'S', 'L', 'R', 'Q', 'V'), 'Please enter an menu option.')
+        user_input = prompt_user_input(('P', 'S', 'L', 'R', 'V', 'Q'), 'Please enter an menu option.')
 
         if user_input == 'P': # Play
-            # TODO: If a user does not have an empty board, ask them if they would like to continue.
+            print('[PLAY]')
 
+            # If a user does not have an empty board, ask them if they would like to continue their previous game.
+            if not game_handler.is_empty(board):
+                user_continue = prompt_user_input(('Y', 'N'), 'Previous game data found, continue?\n\t(Y) Yes\n\t(N) No')
+                    
+            # If user begins new game or the previous game is quit, start with a new board and game data.
+            # Additionally, prompt user for difficulty.
+            if game_handler.is_empty(board) or user_continue == 'N':
+                game_handler.reset_game(board, game_data)
+                user_difficulty = prompt_user_input(('E', 'M', 'H'), '\n\t(E) Easy\n\t(M) Medium\n\t(H) Hard\nPlease enter a difficulty.')
+                game_data[GAME_DATA_DIFFICULTY_KEY] = user_difficulty
 
             # Enter the game.
-            handle_play(session_info)
-        elif user_input == 'S': # Save - TODO
+            game_handler.play(board, player_data, game_data)
+        elif user_input == 'S': # TODO: implement save
+            print('[SAVE SESSION DATA]')
             pass
-        elif user_input == 'L': # Load - TODO
+        elif user_input == 'L': # TODO: implement load
+            print('[LOAD SAVE FILE]')
             pass
-        elif user_input == 'V': # View Data
-            display_player_info(player_info)
+        elif user_input == 'V': # View
+            print('[PLAYER DATA]')
+            display_player_data(player_data)
             print('Enter anything to return.')
             input(' > ')
         elif user_input == 'R': # Read rules
+            print('[RULES]')
             display_rules()
             print('Enter anything to return.')
             input(' > ')
         elif user_input == 'Q': # Quit
-            print('\nThank you for playing our Candy Crush Clone.')
+            print('Thank you for playing our Candy Crush Clone.')
             sys.exit()
 
 def display_main_menu():
@@ -93,100 +71,66 @@ def display_main_menu():
     print('\t(P) Play Game')
     print('\t(S) Save Session Data')
     print('\t(L) Load Save File')
-    print('\t(V) View Player Info')
+    print('\t(V) View Player Data')
     print('\t(R) Read Rules')
     print('\t(Q) Quit\n')
 
-def display_player_info(player_info):
-    RIGHT_PADDING = 10
+def display_player_data(player_data):
+    DIFFICULTY_RIGHT_PADDING = 7
+    CANDY_RIGHT_PADDING = 10
 
-    '''Displays the player's information.
+    '''Displays the player's data.
     Args:
-        player_info: A dictionary representing the player's information.
+        player_data: A dictionary with the player's data.
     '''
-    print(f'\nHighest level: {player_info['Highest Level']}')
-    print(f'Total Crushed: {player_info['Total Crushed']}')
-    print('All Candies Crushed:')
-    
-    for pair in CANDIES_REP:
-        print(f'\t{pair[CANDIES_REP_TYPE].ljust(RIGHT_PADDING)} {get_tile_string(pair[CANDIES_REP_COLOR])}: {player_info['Candies Crushed'][pair[CANDIES_REP_TYPE]]}')
+    # Display highest level.
+    print(f'{PLAYER_DATA_LEVEL_KEY}: {player_data[PLAYER_DATA_LEVEL_KEY]}')
 
-    print()
+    # Display difficulties cleared.
+    print(DATA_DIFFICULTIES_KEY + ':')
+    for difficulty in DIFFICULTIES_DATA:
+        print(f'\t{difficulty.ljust(DIFFICULTY_RIGHT_PADDING)}: {player_data[DATA_DIFFICULTIES_KEY][difficulty]}')
+
+    # Display candies crushed and total.
+    total_candies = 0
+    print(DATA_CANDIES_KEY + ':')
+    for pair in CANDIES_REP:
+        candy_type = pair[CANDIES_REP_TYPE_IDX]
+        candy_color = pair[CANDIES_REP_COLOR_IDX]
+        num_candies = player_data[DATA_CANDIES_KEY][candy_type]
+        total_candies += num_candies
+        print(f'\t{candy_type.ljust(CANDY_RIGHT_PADDING)} {get_tile_string(candy_color)}: {num_candies}')
+    
+    print(f'\t{'TOTAL'.ljust(CANDY_RIGHT_PADDING + TILE_SIZE + 1)}: {total_candies}\n')
 
 def display_rules():
     '''Displays the rules.'''
-    print('''How to Play:
-          \t1. Once you press "P", you will be either be able to choose a difficulty or leave where you left off.
-          \t2. Then, you will be presented with a board of colored tiles, or "candies".
-          \t3. Your objective is to clear candies by matching three of the same color through adjacent swaps.
-          \t4. Objectives will determine the condition for clearing the level.
-          \t\ta. If this objective is not met before a set number of moves has been used, you will lose the level.
-          \t\tb. 3 losses will result in a game over, which will reset your level clear streak.
-          \t5. Throughout levels, special candies with unique functions will appear and assist with clearing the level.
-          \t6. Additionally, blockers will prevent nearby candies from being swapped to their position.''')
+    DIFFICULTY_EFFECT_PADDING = 18
 
+    print('''How to Play:
+\t1. Once you press "P", you will be either be able to choose a difficulty or leave where you left off.
+\t2. Then, you will be presented with a board of colored tiles, or "candies".
+\t3. Your objective is to clear candies by matching three of the same color through adjacent swaps.
+\t4. Objectives will determine the condition for clearing the level.
+\t\ta. If this objective is not met before a set number of moves has been used, you will lose the level.
+\t\tb. 3 losses will result in a game over, which will reset your level clear streak.
+\t5. Throughout levels, special candies with unique functions will appear and assist with clearing the level.
+\t6. Additionally, blockers will prevent nearby candies from being swapped to their position.''')
+
+    # Display difficulties and their effects.
+    print('\nDifficulties:')
+    for difficulty in DIFFICULTIES_EFFECTS:
+        print(f'\t{difficulty}')
+        print(f'\t   {DIFFICULTY_MOVES_KEY.ljust(DIFFICULTY_EFFECT_PADDING)}: {DIFFICULTIES_EFFECTS[difficulty][DIFFICULTY_MOVES_KEY]}')
+        print(f'\t   {DIFFICULTY_BLOCKERS_KEY.ljust(DIFFICULTY_EFFECT_PADDING)}: {DIFFICULTIES_EFFECTS[difficulty][DIFFICULTY_BLOCKERS_KEY]}')
+        print(f'\t   {DIFFICULTY_OBJECTIVES_KEY.ljust(DIFFICULTY_EFFECT_PADDING)}: {DIFFICULTIES_EFFECTS[difficulty][DIFFICULTY_OBJECTIVES_KEY]}')
+
+    # Display candies and their colors.
     print('\nColors:')
     for pair in CANDIES_REP:
-        print(f'{get_tile_string(pair[CANDIES_REP_COLOR])} - {pair[CANDIES_REP_TYPE]}')
+        print(f'\t{get_tile_string(pair[CANDIES_REP_COLOR_IDX])} - {pair[CANDIES_REP_TYPE_IDX]}')
 
     print()
-
-def get_tile_string(color):
-    '''Gets the string representation of a tile with a certain color.
-    Args:
-        color: A string representing the color of the tile.
-    Returns:
-        string: A string that displays the tile's color.
-    '''
-    return f'{color}{' ' * TILE_SIZE}{RESET}'
-
-def prompt_user_input(valid_args, prompt):
-    '''Prompts the user for specific input.
-    Args:
-        valid_args: A tuple of valid arguments.
-        prompt: A message to display.
-
-    Returns:
-        string: A valid piece of user input.
-    '''
-    while True:
-        print(prompt)
-        user_input = input('> ').strip().upper() # Standardize string with strip and uppercase
-
-        if user_input in valid_args:
-            return user_input
-        else:
-            print('\nInvalid input. ', end='')
-
-def get_empty_board():
-    '''Gets a board of all empty strings.
-    Returns:
-        list of lists: 2D array of empty strings.
-    '''
-    return [['' for i in range(BOARD_SIZE)] for i in range(BOARD_SIZE)]
-
-def is_empty(board):
-    '''Checks if a board only has empty strings.
-    Args:
-        board: A 2D array representing the board.
-    
-    Returns:
-        boolean: Whether or not the board only has empty strings.
-    '''
-    
-    for row in board:
-        for col in row:
-            if board[row][col] != '':
-                return False
-    
-    return True
-
-def handle_play(session_info):
-    '''Handles the gameplay logic.
-    Args:
-        session_info: A dictionary representing the information for the current session.
-    '''
-    pass
 
 # Run the program
 main()
