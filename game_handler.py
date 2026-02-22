@@ -2,14 +2,13 @@
 
 from utility import *
 
-def reset_game(board, game_data):
-    '''Resets the provided board and game-related data.
+def reset_game(game_data):
+    '''Resets game-related data.
     Args:
-        board: A 2D array to update.
         game_data: A dictionary with game-related data.
     '''
 
-    set_empty_board(board)
+    game_data[DATA_BOARD_KEY] = get_empty_board()
     game_data[GAME_DATA_LEVEL_KEY] = 0
     game_data[GAME_DATA_DIFFICULTY_KEY] = 'Medium'
     game_data[DATA_CANDIES_KEY] = CANDIES_DATA.copy()
@@ -31,19 +30,16 @@ def is_empty(board):
     
     return True
 
-def set_empty_board(board):
-    '''Sets a board's cells to all empty strings.
-    Args:
-        board: A 2D array to update.
+def get_empty_board():
+    '''Gets a board's with all empty strings.
+    Returns:
+        list of lists: A 2D array with all empty strings.
     '''
-    for row in board:
-        for cell in row:
-            cell = ''
+    return [['' for i in range(BOARD_SIZE)] for i in range(BOARD_SIZE)]
 
-def play(board, player_data, game_data):
+def play(player_data, game_data):
     '''Handles the gameplay logic.
     Args:
-        board: A 2D array to update.
         player_data: A dictionary to update after the user has finished playing.
         game_data: A dictionary with game-related data.
     '''

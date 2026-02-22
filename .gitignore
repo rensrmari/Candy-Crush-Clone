@@ -1,2 +1,6 @@
 *.txt
 *.pyc
+*.bak
+*.dat
+*.dir
+*.db

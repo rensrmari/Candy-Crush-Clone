@@ -56,6 +56,7 @@ CANDIES_REP = [
 PLAYER_DATA_LEVEL_KEY = 'Highest Level'
 GAME_DATA_LEVEL_KEY = 'Current Level'
 GAME_DATA_DIFFICULTY_KEY = 'Current Difficulty'
+DATA_BOARD_KEY = 'Board'
 DATA_DIFFICULTIES_KEY = 'Difficulties Cleared'
 DATA_CANDIES_KEY = 'Candies Crushed'
 DIFFICULTIES_DATA = {

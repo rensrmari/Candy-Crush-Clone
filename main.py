@@ -6,23 +6,23 @@
 #        be able to save their current board for later during their session and save player-related
 #        information to a file.
 
+#TODO: implement save file deletion?
+
 import sys
 import game_handler
 import file_handler
 from utility import *
 
 def main():
-    # Define an empty board.
-    board = []
-    game_handler.set_empty_board(board)
-
     # Define the player and game data.
     player_data = {
+        DATA_BOARD_KEY : game_handler.get_empty_board(),
         PLAYER_DATA_LEVEL_KEY: 0,
-        DATA_CANDIES_KEY: CANDIES_DATA.copy(),
-        DATA_DIFFICULTIES_KEY: DIFFICULTIES_DATA.copy()
+        DATA_DIFFICULTIES_KEY: DIFFICULTIES_DATA.copy(),
+        DATA_CANDIES_KEY: CANDIES_DATA.copy()
     }
     game_data = {}
+    game_handler.reset_game(game_data)
 
     # Allow user to choose options.
     while True:
@@ -33,24 +33,34 @@ def main():
             print('[PLAY]')
 
             # If a user does not have an empty board, ask them if they would like to continue their previous game.
-            if not game_handler.is_empty(board):
+            if not game_handler.is_empty(game_data[DATA_BOARD_KEY]):
                 user_continue = prompt_user_input(('Y', 'N'), 'Previous game data found, continue?\n\t(Y) Yes\n\t(N) No')
                     
             # If user begins new game or the previous game is quit, start with a new board and game data.
             # Additionally, prompt user for difficulty.
-            if game_handler.is_empty(board) or user_continue == 'N':
-                game_handler.reset_game(board, game_data)
-                user_difficulty = prompt_user_input(('E', 'M', 'H'), '\n\t(E) Easy\n\t(M) Medium\n\t(H) Hard\nPlease enter a difficulty.')
+            if game_handler.is_empty(game_data[DATA_BOARD_KEY]) or user_continue == 'N':
+                game_handler.reset_game(game_data[DATA_BOARD_KEY], game_data)
+                user_difficulty = prompt_user_input(('E', 'M', 'H'), 'Please enter a difficulty.\n\t(E) Easy\n\t(M) Medium\n\t(H) Hard')
                 game_data[GAME_DATA_DIFFICULTY_KEY] = user_difficulty
 
             # Enter the game.
-            game_handler.play(board, player_data, game_data)
-        elif user_input == 'S': # TODO: implement save
+            game_handler.play(player_data, game_data)
+        elif user_input == 'S': # Save
             print('[SAVE SESSION DATA]')
-            pass
-        elif user_input == 'L': # TODO: implement load
-            print('[LOAD SAVE FILE]')
-            pass
+            user_save = prompt_user_input(('Y', 'N'), 'Save session data?\n\t(Y) Yes\n\t(N) No')
+            
+            if user_save == 'Y':
+                successful = file_handler.save_session(player_data)
+            
+            if user_save == 'N' or not successful:
+                print('Your current session has not been saved.')
+
+        elif user_input == 'L': # Load
+            print('[LOAD SAVE DATA]')
+
+            if not file_handler.load_file(player_data):
+                print('No data has been loaded.')
+
         elif user_input == 'V': # View
             print('[PLAYER DATA]')
             display_player_data(player_data)
