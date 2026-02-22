@@ -9,6 +9,31 @@ def reset_game(game_data):
     '''
 
     game_data[DATA_BOARD_KEY] = get_empty_board()
+def display_board(board):
+    size = len(board)
+
+    print("\n  ", end="")
+    for col in range(size):
+        print(f"{col} ", end="")
+    print()
+
+    print("  " + "--" * size)
+
+    for row in range(size):
+        print(f"{row} |", end=" ")
+        for col in range(size):
+            print(board[row][col], end=" ")
+        print()
+
+    print()
+    board = [
+    ["R", "G", "B", "Y"],
+    ["Y", "B", "R", "G"],
+    ["G", "R", "R", "B"],
+    ["B", "Y", "G", "R"]
+]
+
+display_board(board)
     game_data[GAME_DATA_LEVEL_KEY] = 0
     game_data[GAME_DATA_DIFFICULTY_KEY] = 'Medium'
     game_data[DATA_CANDIES_KEY] = CANDIES_DATA.copy()
