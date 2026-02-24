@@ -6,8 +6,6 @@
 #        be able to save their current board for later during their session and save player-related
 #        information to a file.
 
-#TODO: implement save file deletion?
-
 import sys
 import game_handler
 import file_handler
@@ -16,10 +14,9 @@ from utility import *
 def main():
     # Define the player and game data.
     player_data = {
-        DATA_BOARD_KEY : game_handler.get_empty_board(),
         PLAYER_DATA_LEVEL_KEY: 0,
-        DATA_DIFFICULTIES_KEY: DIFFICULTIES_DATA.copy(),
-        DATA_CANDIES_KEY: CANDIES_DATA.copy()
+        PLAYER_DATA_DIFFICULTIES_KEY: DATA_DIFFICULTIES.copy(),
+        PLAYER_DATA_CANDIES_KEY: DATA_CANDIES.copy()
     }
     game_data = {}
     game_handler.reset_game(game_data)
@@ -27,40 +24,36 @@ def main():
     # Allow user to choose options.
     while True:
         display_main_menu()
-        user_input = prompt_user_input(('P', 'S', 'L', 'R', 'V', 'Q'), 'Please enter an menu option.')
+        user_input = prompt_user_input(('P', 'S', 'L', 'D', 'R', 'V', 'Q'), 'Please enter an menu option.')
 
         if user_input == 'P': # Play
             print('[PLAY]')
 
             # If a user does not have an empty board, ask them if they would like to continue their previous game.
-            if not game_handler.is_empty(game_data[DATA_BOARD_KEY]):
+            if game_handler.in_progress(game_data):
                 user_continue = prompt_user_input(('Y', 'N'), 'Previous game data found, continue?\n\t(Y) Yes\n\t(N) No')
                     
             # If user begins new game or the previous game is quit, start with a new board and game data.
             # Additionally, prompt user for difficulty.
-            if game_handler.is_empty(game_data[DATA_BOARD_KEY]) or user_continue == 'N':
-                game_handler.reset_game(game_data[DATA_BOARD_KEY], game_data)
-                user_difficulty = prompt_user_input(('E', 'M', 'H'), 'Please enter a difficulty.\n\t(E) Easy\n\t(M) Medium\n\t(H) Hard')
-                game_data[GAME_DATA_DIFFICULTY_KEY] = user_difficulty
+            if not game_handler.in_progress(game_data) or user_continue == 'N':
+                game_handler.reset_game(game_data)
+                game_handler.change_difficulty(game_data)
 
             # Enter the game.
             game_handler.play(player_data, game_data)
         elif user_input == 'S': # Save
             print('[SAVE SESSION DATA]')
             user_save = prompt_user_input(('Y', 'N'), 'Save session data?\n\t(Y) Yes\n\t(N) No')
-            
             if user_save == 'Y':
-                successful = file_handler.save_session(player_data)
-            
-            if user_save == 'N' or not successful:
+                file_handler.save_session(player_data, game_data)
+            else:
                 print('Your current session has not been saved.')
-
         elif user_input == 'L': # Load
             print('[LOAD SAVE DATA]')
-
-            if not file_handler.load_file(player_data):
-                print('No data has been loaded.')
-
+            file_handler.load_file(player_data, game_data)
+        elif user_input == 'D': # Delete
+            print('[DELETE SAVE DATA]')
+            file_handler.delete_file()
         elif user_input == 'V': # View
             print('[PLAYER DATA]')
             display_player_data(player_data)
@@ -80,7 +73,8 @@ def display_main_menu():
     print('\nCANDY CRUSH CLONE')
     print('\t(P) Play Game')
     print('\t(S) Save Session Data')
-    print('\t(L) Load Save File')
+    print('\t(L) Load Save Data')
+    print('\t(D) Delete Save Data')
     print('\t(V) View Player Data')
     print('\t(R) Read Rules')
     print('\t(Q) Quit\n')
@@ -97,19 +91,18 @@ def display_player_data(player_data):
     print(f'{PLAYER_DATA_LEVEL_KEY}: {player_data[PLAYER_DATA_LEVEL_KEY]}')
 
     # Display difficulties cleared.
-    print(DATA_DIFFICULTIES_KEY + ':')
-    for difficulty in DIFFICULTIES_DATA:
-        print(f'\t{difficulty.ljust(DIFFICULTY_RIGHT_PADDING)}: {player_data[DATA_DIFFICULTIES_KEY][difficulty]}')
+    print(PLAYER_DATA_DIFFICULTIES_KEY + ':')
+    for difficulty in DATA_DIFFICULTIES:
+        print(f'\t{difficulty.ljust(DIFFICULTY_RIGHT_PADDING)}: {player_data[PLAYER_DATA_DIFFICULTIES_KEY][difficulty]}')
 
     # Display candies crushed and total.
     total_candies = 0
-    print(DATA_CANDIES_KEY + ':')
-    for pair in CANDIES_REP:
-        candy_type = pair[CANDIES_REP_TYPE_IDX]
-        candy_color = pair[CANDIES_REP_COLOR_IDX]
-        num_candies = player_data[DATA_CANDIES_KEY][candy_type]
+    print(PLAYER_DATA_CANDIES_KEY + ':')
+    for key, val in CANDIES_REP.items():
+        candy_color = val[CANDIES_REP_COLOR_IDX]
+        num_candies = player_data[PLAYER_DATA_CANDIES_KEY][key]
         total_candies += num_candies
-        print(f'\t{candy_type.ljust(CANDY_RIGHT_PADDING)} {get_tile_string(candy_color)}: {num_candies}')
+        print(f'\t{key.ljust(CANDY_RIGHT_PADDING)} {get_tile_string(candy_color)}: {num_candies}')
     
     print(f'\t{'TOTAL'.ljust(CANDY_RIGHT_PADDING + TILE_SIZE + 1)}: {total_candies}\n')
 
@@ -137,8 +130,8 @@ def display_rules():
 
     # Display candies and their colors.
     print('\nColors:')
-    for pair in CANDIES_REP:
-        print(f'\t{get_tile_string(pair[CANDIES_REP_COLOR_IDX])} - {pair[CANDIES_REP_TYPE_IDX]}')
+    for key, val in CANDIES_REP.items():
+        print(f'\t{get_tile_string(val[CANDIES_REP_COLOR_IDX])} - {key}')
 
     print()
 

@@ -8,23 +8,13 @@ def reset_game(game_data):
         game_data: A dictionary with game-related data.
     '''
 
-    game_data[DATA_BOARD_KEY] = get_empty_board()
-    # Color Constants
-    RED = '\033[41m'
-    BLUE = '\033[44m'
-    GREEN = '\033[42m'
-    YELLOW = '\033[103m'
-    GREY = '\033[100m'
-    WHITE = '\033[107m'
-    CYAN = '\033[46m'
-    BLACK = '\033[40m'
-    RESET = '\033[0m'
+    game_data[GAME_DATA_BOARD_KEY] = get_empty_board()
+    game_data[GAME_DATA_DIFFICULTY_KEY] = 'Medium'
+    game_data[GAME_DATA_LEVEL_KEY] = 0
+    game_data[GAME_DATA_SCORE_KEY] = 0
+    game_data[DATA_IN_PROGRESS_KEY] = True
 
-    # Game Constant
-    BOARD_SIZE = 10
-    TILE_SIZE = 2
-
- def display_board(board):
+def display_board(board):
     '''
     Displays the game board in a formatted grid.
     
@@ -54,11 +44,16 @@ def reset_game(game_data):
 
         print()  # New line after each row
 
-    print() 
-    game_data[GAME_DATA_LEVEL_KEY] = 0
-    game_data[GAME_DATA_DIFFICULTY_KEY] = 'Medium'
-    game_data[DATA_CANDIES_KEY] = CANDIES_DATA.copy()
-    game_data[DATA_DIFFICULTIES_KEY] = DIFFICULTIES_DATA.copy()
+    print()
+
+def in_progress(game_data):
+    '''Checks if a game is in progress.
+    Args:
+        game_data: The game data to check.
+    Returns:
+        boolean: Whether or not a game is in progress.
+    '''
+    return game_data[DATA_IN_PROGRESS_KEY]
 
 def is_empty(board):
     '''Checks if a board only has empty strings.
@@ -90,3 +85,20 @@ def play(player_data, game_data):
         game_data: A dictionary with game-related data.
     '''
     pass
+
+def change_difficulty(game_data):
+    '''Prompts the user to change the current difficulty.
+    Args:
+        game_data: The game data to update with the new difficulty.
+    '''
+    new_difficulty = ''
+    user_difficulty = prompt_user_input(('E', 'M', 'H'), 'Please enter a difficulty.\n\t(E) Easy\n\t(M) Medium\n\t(H) Hard')
+
+    if user_difficulty == 'E':
+        new_difficulty = 'Easy'
+    if user_difficulty == 'M':
+        new_difficulty = 'Medium'
+    else:
+        new_difficulty = 'Hard'
+
+    game_data[GAME_DATA_DIFFICULTY_KEY] = new_difficulty

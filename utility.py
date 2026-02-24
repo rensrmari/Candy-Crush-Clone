@@ -1,16 +1,6 @@
 # utility.py: Contains shared constants relating to colors, difficulties, candies, player data, and game data.
 #             Also contains functions used among modules.
 
-RED = '\033[41m'
-BLUE = '\033[44m'
-GREEN = '\033[42m'
-YELLOW = '\033[103m'
-GREY = '\033[100m'
-WHITE = '\033[107m'
-CYAN = '\033[46m'
-BLACK = '\033[40m'
-RESET = '\033[0m'
-
 BOARD_SIZE = 10
 TILE_SIZE = 2
 
@@ -38,33 +28,43 @@ DIFFICULTIES_EFFECTS = {
     }
 }
 
-# A list of candy types and colors, with index constants.
-CANDIES_REP_TYPE_IDX = 0
+# Constants for candy representation.
+RED = 'R'
+BLUE = 'B'
+GREEN = 'G'
+YELLOW = 'Y'
+COLOR_BOMB = 'C'
+LINE_BOMB = 'L'
+AREA_BOMB = 'A'
+BLOCKER = 'X'
+CANDIES_REP_STR_IDX = 0
 CANDIES_REP_COLOR_IDX = 1
-CANDIES_REP = [
-    ('Red', RED),
-    ('Blue', BLUE),
-    ('Green', GREEN),
-    ('Yellow', YELLOW),
-    ('Color Bomb', GREY),
-    ('Line Bomb', WHITE),
-    ('Area Bomb', CYAN),
-    ('Blocker', BLACK)
-]
+CANDIES_REP = {
+    'Red': (RED, '\033[41m'),                # Red
+    'Blue': (BLUE, '\033[44m'),              # Blue
+    'Green': (GREEN, '\033[42m'),            # Green
+    'Yellow': (YELLOW, '\033[103m'),         # Yellow
+    'Color Bomb': (COLOR_BOMB, '\033[107m'), # White
+    'Line Bomb': (LINE_BOMB, '\033[100m'),   # Grey
+    'Area Bomb': (AREA_BOMB, '\033[46m'),    # Cyan
+    'Blocker': (BLOCKER, '\033[40m')         # Black
+}
 
 # Keys and dictionaries for player/game data.
 PLAYER_DATA_LEVEL_KEY = 'Highest Level'
-GAME_DATA_LEVEL_KEY = 'Current Level'
+PLAYER_DATA_DIFFICULTIES_KEY = 'Difficulties Cleared'
+PLAYER_DATA_CANDIES_KEY = 'Candies Crushed'
+GAME_DATA_BOARD_KEY = 'Board'
 GAME_DATA_DIFFICULTY_KEY = 'Current Difficulty'
-DATA_BOARD_KEY = 'Board'
-DATA_DIFFICULTIES_KEY = 'Difficulties Cleared'
-DATA_CANDIES_KEY = 'Candies Crushed'
-DIFFICULTIES_DATA = {
+GAME_DATA_LEVEL_KEY = 'Current Level'
+GAME_DATA_SCORE_KEY = 'Score'
+DATA_IN_PROGRESS_KEY = 'In Progress'
+DATA_DIFFICULTIES = {
     'Easy': 0,
     'Medium': 0,
     'Hard': 0
 }
-CANDIES_DATA = {
+DATA_CANDIES = {
     'Red': 0,
     'Blue': 0,
     'Green': 0,
@@ -83,7 +83,7 @@ def get_tile_string(color):
     Returns:
         string: A string that displays the tile's color.
     '''
-    return f'{color}{' ' * TILE_SIZE}{RESET}'
+    return f'{color}{' ' * TILE_SIZE}{'\033[0m'}'
 
 def prompt_user_input(valid_inputs, prompt):
     '''Continually prompts the user for a valid piece of input.
