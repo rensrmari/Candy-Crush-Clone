@@ -83,7 +83,7 @@ def get_tile_string(color):
     Returns:
         string: A string that displays the tile's color.
     '''
-    return f'{color}{' ' * TILE_SIZE}{'\033[0m'}'
+       return f"{color}{' ' * TILE_SIZE}\033[0m"
 
 def prompt_user_input(valid_inputs, prompt):
     '''Continually prompts the user for a valid piece of input.
