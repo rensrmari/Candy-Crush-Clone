@@ -102,3 +102,39 @@ def change_difficulty(game_data):
         new_difficulty = 'Hard'
 
     game_data[GAME_DATA_DIFFICULTY_KEY] = new_difficulty
+
+def play(player_data, game_data):
+    board = game_data[GAME_DATA_BOARD_KEY]
+
+    if GAME_DATA_MOVE_KEY not in game_data:
+        game_data[GAME_DATA_MOVE_KEY] = 10
+
+    while game_data[GAME_DATA_MOVE_KEY] > 0:
+
+        display_board(board)
+
+        print(f"Moves left: {game_data[GAME_DATA_MOVE_KEY]}")
+        print("Enter row and column to clear (example: 1 2)")
+        print("Or Q to quit")
+
+        user_input = input(" > ").upper()
+
+        if user_input == 'Q':
+            print("Exiting level...")
+            return
+
+        try:
+            row, col = map(int, user_input.split())
+        except:
+            print("Invalid input.")
+            continue
+
+        if row < 0 or row >= len(board) or col < 0 or col >= len(board):
+            print("Out of range.")
+            continue
+
+        board[row][col] = random.choice(list(CANDIES_REP.keys()))
+
+        game_data[GAME_DATA_MOVE_KEY] -= 1
+
+    print("Out of moves! Game Over.")
