@@ -15,8 +15,8 @@ def main():
     # Define the player and game data.
     player_data = {
         PLAYER_DATA_LEVEL_KEY: 0,
-        PLAYER_DATA_DIFFICULTIES_KEY: DATA_DIFFICULTIES.copy(),
-        PLAYER_DATA_CANDIES_KEY: DATA_CANDIES.copy()
+        PLAYER_DATA_DIFFICULTIES_KEY: PLAYER_DATA_DIFFICULTIES.copy(),
+        PLAYER_DATA_CANDIES_KEY: PLAYER_DATA_CANDIES.copy()
     }
     game_data = {}
     game_handler.reset_game(game_data)
@@ -92,7 +92,7 @@ def display_player_data(player_data):
 
     # Display difficulties cleared.
     print(PLAYER_DATA_DIFFICULTIES_KEY + ':')
-    for difficulty in DATA_DIFFICULTIES:
+    for difficulty in PLAYER_DATA_DIFFICULTIES:
         print(f'\t{difficulty.ljust(DIFFICULTY_RIGHT_PADDING)}: {player_data[PLAYER_DATA_DIFFICULTIES_KEY][difficulty]}')
 
     # Display candies crushed and total.
@@ -102,7 +102,7 @@ def display_player_data(player_data):
         candy_color = val[CANDIES_REP_COLOR_IDX]
         num_candies = player_data[PLAYER_DATA_CANDIES_KEY][key]
         total_candies += num_candies
-        print(f'\t{key.ljust(CANDY_RIGHT_PADDING)} {get_tile_string(candy_color)}: {num_candies}')
+        print(f'\t{key.ljust(CANDY_RIGHT_PADDING)} {get_tile_display(candy_color)}: {num_candies}')
     
     print(f'\t{'TOTAL'.ljust(CANDY_RIGHT_PADDING + TILE_SIZE + 1)}: {total_candies}\n')
 
@@ -131,10 +131,10 @@ def display_rules():
     # Display candies and their colors.
     print('\nColors:')
     for key, val in CANDIES_REP.items():
-        print(f'\t{get_tile_string(val[CANDIES_REP_COLOR_IDX])} - {key}')
+        print(f'\t{get_tile_display(val[CANDIES_REP_COLOR_IDX])} - {key}')
 
     print()
 
 # Run the program
-if __name__ == "__main__"
-main()
+if __name__ == "__main__":
+    main()
