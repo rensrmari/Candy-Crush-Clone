@@ -104,7 +104,7 @@ def display_player_data(player_data):
         total_candies += num_candies
         print(f'\t{key.ljust(CANDY_RIGHT_PADDING)} {get_tile_display(candy_color)}: {num_candies}')
     
-    print(f'\t{'TOTAL'.ljust(CANDY_RIGHT_PADDING + TILE_SIZE + 1)}: {total_candies}\n')
+    print(f"\t{'TOTAL'.ljust(CANDY_RIGHT_PADDING + TILE_SIZE + 1)}: {total_candies}\n")
 
 def display_rules():
     '''Displays the rules.'''
