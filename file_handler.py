@@ -52,8 +52,10 @@ def save_session(player_data, game_data):
             # Game data.
             shelf_file[GAME_DATA_BOARD_KEY] = game_data[GAME_DATA_BOARD_KEY]
             shelf_file[GAME_DATA_LEVEL_KEY] = game_data[GAME_DATA_LEVEL_KEY]
-            shelf_file[GAME_DATA_DIFFICULTY_KEY] = game_data[GAME_DATA_DIFFICULTY_KEY]
+            shelf_file[GAME_DATA_SCORE_KEY] = game_data[GAME_DATA_SCORE_KEY]
+            shelf_file[GAME_DATA_LIVES_KEY] = game_data[GAME_DATA_LIVES_KEY]
             shelf_file[GAME_DATA_IN_PROGRESS_KEY] = game_data[GAME_DATA_IN_PROGRESS_KEY]
+            shelf_file[GAME_DATA_DIFFICULTY_KEY] = game_data[GAME_DATA_DIFFICULTY_KEY]
         print(f'Successfully saved session data to "{p.parent.name}".')
     except (KeyError, OSError): # Make sure variables exist and the file is able to be opened
         print(f'Could not save session data to "{p.parent.name}".')
@@ -87,9 +89,10 @@ def load_file(player_data, game_data):
             # Game data.
             game_data[GAME_DATA_BOARD_KEY] = shelf_file[GAME_DATA_BOARD_KEY]
             game_data[GAME_DATA_LEVEL_KEY] = shelf_file[GAME_DATA_LEVEL_KEY]
-            game_data[GAME_DATA_DIFFICULTY_KEY] = shelf_file[GAME_DATA_DIFFICULTY_KEY]
             game_data[GAME_DATA_SCORE_KEY] = shelf_file[GAME_DATA_SCORE_KEY]
+            game_data[GAME_DATA_LIVES_KEY] = shelf_file[GAME_DATA_LIVES_KEY]
             game_data[GAME_DATA_IN_PROGRESS_KEY] = shelf_file[GAME_DATA_IN_PROGRESS_KEY]
+            game_data[GAME_DATA_DIFFICULTY_KEY] = shelf_file[GAME_DATA_DIFFICULTY_KEY]
         print(f'Successfully loaded save data from "{p.parent.name}".')
     except (KeyError, OSError):
         print(f'Could not load save data from "{p.parent.name}".')
@@ -195,9 +198,10 @@ def get_valid_dirs(path):
                         file.get(PLAYER_DATA_CANDIES_KEY, None),
                         file.get(GAME_DATA_BOARD_KEY, None),
                         file.get(GAME_DATA_LEVEL_KEY, None),
-                        file.get(GAME_DATA_DIFFICULTY_KEY, None),
                         file.get(GAME_DATA_SCORE_KEY, None),
-                        file.get(GAME_DATA_IN_PROGRESS_KEY, None)
+                        file.get(GAME_DATA_LIVES_KEY, None),
+                        file.get(GAME_DATA_IN_PROGRESS_KEY, None),
+                        file.get(GAME_DATA_DIFFICULTY_KEY, None)
                     ]
 
                 if None not in data:

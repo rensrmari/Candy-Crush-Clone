@@ -7,23 +7,35 @@ from utility import *
 
 BOARD_SIZE = 10
 MINIMUM_POSSIBLE_MOVES_START = 5
-MINIMUM_POSSIBLE_MOVES_DURING = 1
+MINIMUM_POSSIBLE_MOVES_DURING = 2
 CONSEC_NONE = 0
 CONSEC_VERTICAL = 1
 CONSEC_HORIZONTAL = 2
 CONSEC_BOTH = 3
 
-def reset_game(game_data):
+def reset_game(game_data, cont):
     '''Resets game-related data.
     Args:
         game_data: A dictionary with game-related data.
+        cont: Whether or not certain data from the previous game will be saved.
     '''
 
+    game_data[GAME_DATA_IN_PROGRESS_KEY] = cont
+
+    if not cont: # Fresh start variables
+        game_data[GAME_DATA_LEVEL_KEY] = 1
+        game_data[GAME_DATA_SCORE_KEY] = 0
+
+    # Always generate these variables for a new game, regardless of whether it is a complete reset.
     game_data[GAME_DATA_BOARD_KEY] = get_empty_board()
-    game_data[GAME_DATA_LEVEL_KEY] = 1
-    game_data[GAME_DATA_SCORE_KEY] = 0
-    game_data[GAME_DATA_IN_PROGRESS_KEY] = False
+    game_data[GAME_DATA_LIVES_KEY] = 3
     game_data[GAME_DATA_DIFFICULTY_KEY] = DIFFICULTIES_EFFECTS['Medium'].copy()
+    game_data[GAME_DATA_DIFFICULTY_KEY][OBJECTIVES_STR_IDX] = get_objective()
+
+def get_objective():
+    '''Randomly generates an objective candy.'''
+    choices = (RED, BLUE, GREEN, YELLOW, PURPLE)
+    return random.choice(choices)[CANDIES_REP_STR_IDX]
 
 def change_difficulty(game_data):
     '''Prompts the user to change the current difficulty.
@@ -42,6 +54,20 @@ def change_difficulty(game_data):
 
     # Copy a difficulty dictionary from DIFFICULTIES_EFFECTS.
     game_data[GAME_DATA_DIFFICULTY_KEY] = DIFFICULTIES_EFFECTS[new_difficulty].copy()
+
+def is_empty(board):
+    '''Checks if a board has all empty strings.
+    Args:
+        board: The board to check.
+    Returns:
+        boolean: Whether or not the board has all empty strings.
+    '''
+    for row in board:
+        for cell in row:
+            if cell != '':
+                return False
+            
+    return True
 
 def in_progress(game_data):
     '''Checks if a game is in progress.
@@ -134,8 +160,8 @@ def fill_board(game_data, minimum_moves):
                     temp_board[row][col] = new_candy[CANDIES_REP_STR_IDX]
                     matches = get_adjacent_matches(temp_board, (row, col), set())
 
-                    if check_consecutive(matches):
-                        num_tries += 1
+                    if check_consecutive(matches)[0] != CONSEC_NONE:
+                        num_choices -= 1
                         choices.remove(new_candy)
                         temp_board[row][col] = ''
                     else:
@@ -200,11 +226,6 @@ def get_adjacent_directions(board, position):
     row = position[0]
     col = position[1]
     candy = board[row][col]
-
-    left = col - 1
-    right = col + 1
-    up = row - 1
-    down = row + 1
 
     unchecked = ('', COLOR_BOMB[CANDIES_REP_STR_IDX], LINE_BOMB[CANDIES_REP_STR_IDX], AREA_BOMB[CANDIES_REP_STR_IDX], BLOCKER[CANDIES_REP_STR_IDX])
 
@@ -302,7 +323,7 @@ def get_all_matches(board, stop_at_one=False):
                     continue
 
             adjacent_matches = tuple(get_adjacent_matches(board, (row, col), set())) # Make returned list compatible with set
-            match_type = check_consecutive(adjacent_matches)
+            match_type = check_consecutive(adjacent_matches)[0]
 
             if match_type == CONSEC_VERTICAL or match_type == CONSEC_HORIZONTAL or match_type == CONSEC_BOTH:
                 matches_above_2.add(adjacent_matches)
@@ -318,7 +339,7 @@ def check_consecutive(matches):
     Args:
         matches: A list of matching candies' positions.
     Returns:
-        int: An integer representing the status of the matches.
+        (int, list): An integer representing the status of the matches as well as a list of positions that contain a certain sequence.
     '''
     # Dictionary that counts same row and column values.
     counts = {
@@ -338,23 +359,45 @@ def check_consecutive(matches):
         counts['Col'].setdefault(col, 0)
         counts['Col'][col] += 1
 
-    # Check for row and/or column counts over 2.
-    for row_count in counts['Row'].values():
+    # Check for row and/or column counts over 2, as well as the maximum row/column with the maximum consecutive matches.
+    max_row = 0
+    max_row_val = 0
+    max_col = 0
+    max_col_val = 0
+    for row, row_count in counts['Row'].items():
+        if row_count > max_row_val:
+            max_row = row
+            row_count = max_row_val
         if row_count > 2:
-            vert = True
-        
-    for col_count in counts['Col'].values():
-        if col_count > 2:
             horiz = True
+        
+    for col, col_count in counts['Col'].items():
+        if col_count > max_col_val:
+            max_col = col
+            col_count = max_col_val
+        if col_count > 2:
+            vert = True
+
+    # Get the positions of the row/col with the maximum consecutive matches.
+    max_row_positions = []
+    max_col_positions = []
+    for match in matches:            
+        if match[0] == max_row:
+            max_row_positions.append(match)
+        if match[1] == max_col:
+            max_col_positions.append(match)
 
     if vert and horiz:
-        return CONSEC_BOTH
+        to_add = set()
+        to_add.update(max_row_positions)
+        to_add.update(max_col_positions)
+        return (CONSEC_BOTH, list(to_add))
     elif vert:
-        return CONSEC_VERTICAL
+        return (CONSEC_VERTICAL, max_col_positions)
     elif horiz:
-        return CONSEC_HORIZONTAL
+        return (CONSEC_HORIZONTAL, max_row_positions)
     else:
-        return CONSEC_NONE
+        return (CONSEC_NONE, [])
 
 def swap(board, position1, position2):
     '''Swaps two candies on the board.
@@ -367,7 +410,6 @@ def swap(board, position1, position2):
     board[position1[0]][position1[1]] = board[position2[0]][position2[1]]
     board[position2[0]][position2[1]] = temp_str
 
-
 def check_swap_match(board, position1, position2):
     '''Checks if a swap results in matches.
     Args:
@@ -377,17 +419,21 @@ def check_swap_match(board, position1, position2):
     Returns:
         boolean: Whether or not the swap results in matches.
     '''
-    if check_consecutive(get_adjacent_matches(board, position1, set())) != CONSEC_NONE or check_consecutive(get_adjacent_matches(board, position2, set())) != CONSEC_NONE:
+    if check_consecutive(get_adjacent_matches(board, position1, set()))[0] != CONSEC_NONE or check_consecutive(get_adjacent_matches(board, position2, set()))[0] != CONSEC_NONE:
         return True
     else:
         return False
 # TODO: implement activation for 3 candies
 def activate_special_candy(game_data, candy):
-    '''Executes the behavior of the special candy.
+    '''Gets a list of candies to clear based on the special candy.
     Args:
         game_data: The game data to update.
         candy: The string representing the candy.
+    Returns:
+        list of tuples: A list of positions that represent the special candy's future clears.
     '''
+
+    # Call clear_candies() somewhere
 
     pass
 
@@ -404,16 +450,51 @@ def get_user_coord(user_input):
         return (True, (row, col))
     except:
         return (False, (-1, -1))
-# TODO: implement matching + converting here
-def update_board(game_data, start_pos=(-1,-1)):
-    '''Clears any matches and converts certain candy sequences to special candies, one at a time.
-    Also updates game data associated with any cleared candies.
+    
+def clear_candies(player_data, game_data, positions):
+    '''Updates the data of the player and the game based on the supplied candies, which are to be cleared.
     Args:
-        start_pos: An optional position specifying where the updates should start.
+        player_data: The player data to update.
+        game_data: The game data to update.
+        positions: The positions that will be cleared.
+    '''
+    # Iterate through positions.
+    for position in positions:
+        row = position[0]
+        col = position[1]
+        cell = game_data[GAME_DATA_BOARD_KEY][row][col]
+
+        # Game: Update the objective counter.
+        if cell == game_data[GAME_DATA_DIFFICULTY_KEY][DIFFICULTY_STR_KEY]:
+            game_data[GAME_DATA_DIFFICULTY_KEY][DIFFICULTY_MOVES_KEY] -= 1
+
+        # Game: Update the score.
+        game_data[GAME_DATA_SCORE_KEY] += 1
+
+        # Player: Update the candies crushed.
+        candy = get_tile_info(cell)
+        for key, val in CANDIES_REP.items():
+            if val == candy:
+                CANDIES_REP[key] += 1
+
+# TODO: implement matching + converting here
+def update_board(game_data, pos1=(-1, -1), pos2=(-1, -1)):
+    '''Clears any matches and converts certain candy sequences to special candies.
+    Args:
+        pos1: An optional position specifying where to check for matches (in the case of swaps matching).
+        pos2: Another optional position specifying where to check for matches.
     Returns:
         boolean: Whether or not updates have occurred.
     '''
-    pass
+    # Clear the matches, if there are supplied positions.
+    if pos1 != (-1, -1) and pos2 != (-1, -1):
+        status1, matches1 = check_consecutive(get_adjacent_matches(game_data[GAME_DATA_BOARD_KEY]), pos1, set())
+        status2, matches2 = check_consecutive(get_adjacent_matches(game_data[GAME_DATA_BOARD_KEY]), pos2, set())
+
+        
+        pass
+
+    display_board(game_data[GAME_DATA_BOARD_KEY])
 
 def drop_candies(board):
     '''Drops candies to their lowest position.
@@ -435,6 +516,22 @@ def drop_candies(board):
             # Shift the candy to the empty position.
             board[new_row][col] = board[row][col]
             board[row][col] = ''
+    
+    display_board(board)
+
+def update_highest_level(player_data, level):
+    '''Updates the player's highest level with a new level if it is surpassed.
+    Args:
+        player_data: The player data whose highest level is to be updated.
+        level: The level to check.
+    Returns:
+        boolean: Whether or not the new level beats the previous highest level.
+    '''
+    if level > player_data[PLAYER_DATA_LEVEL_KEY]:
+        player_data[PLAYER_DATA_LEVEL_KEY] = level
+        return True
+    
+    return False
 
 def play(player_data, game_data):
     '''Handles the gameplay logic.
@@ -448,6 +545,8 @@ def play(player_data, game_data):
             - Level
             - Difficulty info (moves left, blocker limit, objective count)
             - Score
+            - Lives
+            - Progress
     '''
     # Get the game data, update the game status, and fill the board.
     game_data[GAME_DATA_IN_PROGRESS_KEY] = True
@@ -490,9 +589,11 @@ def play(player_data, game_data):
             continue
         
         # After getting a valid position, check if the position refers to a normal or special candy.
+        update = False
         special_candies = (COLOR_BOMB[CANDIES_REP_STR_IDX], LINE_BOMB[CANDIES_REP_STR_IDX], AREA_BOMB[CANDIES_REP_STR_IDX])
         if candy in special_candies:
             activate_special_candy(candy)
+            update = True
         else:
             # Prompt user for an adjacent position to swap the regular candy.
             new_valid, (new_row, new_col) = get_user_coord(input("Enter another row and column (example: 1 2)\n > ").upper())
@@ -527,23 +628,36 @@ def play(player_data, game_data):
                 display_board(game_data[GAME_DATA_BOARD_KEY])
                 print("Unsuccessful swap.")
             else:
-                # TODO: Update score, objectives, current level, level clear condition, player candies crushed, difficulties cleared
+                update = True
+            
+            # Update the board if a move activated a special candy or resulted in matches.
+            if update:
                 # Lower the candies, then check for any possible matches to update the board.
                 # Stop when no updates can occur when candies are at their lowest.
+                update_board(game_data, (row, col), (new_row, new_col))
+
                 while True:
                     drop_candies(game_data[GAME_DATA_BOARD_KEY])
-                    updates = update_board()
+                    updates = update_board(game_data)
 
                     if not updates:
                         break
 
-                fill_board()
+                fill_board(game_data, MINIMUM_POSSIBLE_MOVES_DURING)
                 
         # Reduce move count after the move.
         difficulty_data[DIFFICULTY_MOVES_KEY] -= 1
 
-        # TODO: Check if the objective has been met.
+        # Check if the objective has been met.
+        if game_data[GAME_DATA_DIFFICULTY_KEY][DIFFICULTY_OBJECTIVES_KEY] == 0:
+            level = game_data[GAME_DATA_LEVEL_KEY]
+            print(f"Cleared Level {level} - {"Personal Best!" if update_highest_level(player_data, level) else ""}")
+            break
+    else:
+        # Loss logic (output lose message, decrease lives, and check number of lives left).
+        game_data[GAME_DATA_LIVES_KEY] -= 1
+        print(f"Out of moves! Live count: {game_data[GAME_DATA_LIVES_KEY]}.")
 
-
-    print("Out of moves! Game Over.")
-    game_data[GAME_DATA_IN_PROGRESS_KEY] = False
+        if game_data[GAME_DATA_LIVES_KEY] <= 0:
+            print("Out of lives - Game Over!")
+            game_data[GAME_DATA_IN_PROGRESS_KEY] = False

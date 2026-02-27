@@ -19,7 +19,7 @@ def main():
         PLAYER_DATA_CANDIES_KEY: PLAYER_DATA_CANDIES.copy()
     }
     game_data = {}
-    game_handler.reset_game(game_data)
+    game_handler.reset_game(game_data, False)
 
     # Allow user to choose options.
     while True:
@@ -30,13 +30,18 @@ def main():
             print('[PLAY]')
 
             # If a user does not have an empty board, ask them if they would like to continue their previous game.
-            if game_handler.in_progress(game_data):
+            if not game_handler.is_empty(game_data[GAME_DATA_BOARD_KEY]):
                 user_continue = prompt_user_input(('Y', 'N'), 'Previous game data found, continue?\n\t(Y) Yes\n\t(N) No')
                     
             # If user begins new game or the previous game is quit, start with a new board and game data.
             # Additionally, prompt user for difficulty.
-            if not game_handler.in_progress(game_data) or user_continue == 'N':
-                game_handler.reset_game(game_data)
+            if game_handler.is_empty(game_data) and not game_handler.in_progress(game_data) or user_continue == 'N':
+                game_handler.reset_game(game_data, False)
+                game_handler.change_difficulty(game_data)
+            
+            # Do a soft reset for new games with previous data.
+            if game_handler.is_empty(game_data[GAME_DATA_BOARD_KEY]) and game_handler.in_progress(game_data):
+                game_handler.reset_game(game_data, True)
                 game_handler.change_difficulty(game_data)
 
             # Enter the game.
