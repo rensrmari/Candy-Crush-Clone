@@ -6,8 +6,11 @@ import time
 from utility import *
 
 BOARD_SIZE = 10
+DELAY = 0.5
+
 MINIMUM_POSSIBLE_MOVES_START = 5
 MINIMUM_POSSIBLE_MOVES_DURING = 2
+
 CONSEC_NONE = 0
 CONSEC_VERTICAL = 1
 CONSEC_HORIZONTAL = 2
@@ -30,7 +33,7 @@ def reset_game(game_data, cont):
     game_data[GAME_DATA_BOARD_KEY] = get_empty_board()
     game_data[GAME_DATA_LIVES_KEY] = 3
     game_data[GAME_DATA_DIFFICULTY_KEY] = DIFFICULTIES_EFFECTS['Medium'].copy()
-    game_data[GAME_DATA_DIFFICULTY_KEY][OBJECTIVES_STR_IDX] = get_objective()
+    game_data[GAME_DATA_DIFFICULTY_KEY][DIFFICULTY_OBJECTIVES_KEY][OBJECTIVES_STR_IDX] = get_objective()
 
 def get_objective():
     '''Randomly generates an objective candy.'''
@@ -326,7 +329,7 @@ def get_all_matches(board, stop_at_one=False):
             match_type = check_consecutive(adjacent_matches)[0]
 
             if match_type == CONSEC_VERTICAL or match_type == CONSEC_HORIZONTAL or match_type == CONSEC_BOTH:
-                matches_above_2.add(adjacent_matches)
+                matches_above_2.update(adjacent_matches)
 
                 # Prematurely stop if any matches were found.
                 if stop_at_one:
@@ -367,15 +370,15 @@ def check_consecutive(matches):
     for row, row_count in counts['Row'].items():
         if row_count > max_row_val:
             max_row = row
-            row_count = max_row_val
-        if row_count > 2:
+            max_row_val = row_count
+        if max_row_val > 2:
             horiz = True
         
     for col, col_count in counts['Col'].items():
         if col_count > max_col_val:
             max_col = col
-            col_count = max_col_val
-        if col_count > 2:
+            max_col_val = col_count
+        if max_col_val > 2:
             vert = True
 
     # Get the positions of the row/col with the maximum consecutive matches.
@@ -453,47 +456,106 @@ def get_user_coord(user_input):
     
 def clear_candies(player_data, game_data, positions):
     '''Updates the data of the player and the game based on the supplied candies, which are to be cleared.
+    Also clears blockers if they are adjacent to the matched candies.
     Args:
         player_data: The player data to update.
         game_data: The game data to update.
         positions: The positions that will be cleared.
     '''
+
     # Iterate through positions.
     for position in positions:
-        row = position[0]
-        col = position[1]
-        cell = game_data[GAME_DATA_BOARD_KEY][row][col]
+        cell = game_data[GAME_DATA_BOARD_KEY][position[0]][position[1]]
+        cleared = [position]
+
+        # Player and game: Update the candies crushed for blockers, and increase the blocker limit due to removal.
+        adjacent_pos = get_possible_directions(game_data[GAME_DATA_BOARD_KEY], position)
+        for pos in adjacent_pos:
+            if get_tile_info(game_data[GAME_DATA_BOARD_KEY][pos[0]][pos[1]]) == BLOCKER:
+                if game_data[GAME_DATA_DIFFICULTY_KEY][DIFFICULTY_BLOCKERS_KEY] < DIFFICULTIES_EFFECTS[game_data[GAME_DATA_DIFFICULTY_KEY]][DIFFICULTY_BLOCKERS_KEY]:
+                    game_data[GAME_DATA_DIFFICULTY_KEY][DIFFICULTY_BLOCKERS_KEY] += 1
+                    cleared.append(pos)
 
         # Game: Update the objective counter.
-        if cell == game_data[GAME_DATA_DIFFICULTY_KEY][DIFFICULTY_STR_KEY]:
+
+        # TODO: FIX OBJECTIVES UPDATE, DROP_CANDIES() 
+        if cell == game_data[GAME_DATA_DIFFICULTY_KEY][DIFFICULTY_OBJECTIVES_KEY][OBJECTIVES_STR_IDX]:
             game_data[GAME_DATA_DIFFICULTY_KEY][DIFFICULTY_MOVES_KEY] -= 1
 
-        # Game: Update the score.
-        game_data[GAME_DATA_SCORE_KEY] += 1
 
         # Player: Update the candies crushed.
         candy = get_tile_info(cell)
         for key, val in CANDIES_REP.items():
             if val == candy:
-                CANDIES_REP[key] += 1
+                player_data[PLAYER_DATA_CANDIES_KEY][key] += 1
+                break
 
-# TODO: implement matching + converting here
-def update_board(game_data, pos1=(-1, -1), pos2=(-1, -1)):
-    '''Clears any matches and converts certain candy sequences to special candies.
+        # Remove strings of removed tiles from the board.
+        for pos in cleared:
+            game_data[GAME_DATA_BOARD_KEY][pos[0]][pos[1]] = ''
+
+        # Update the score.
+        game_data[GAME_DATA_SCORE_KEY] += len(cleared)
+
+def get_clearable_positions(board, positions):
+    '''Returns a list of positions that contains as many supplied positions as possible before going out of range/blocker.
     Args:
-        pos1: An optional position specifying where to check for matches (in the case of swaps matching).
-        pos2: Another optional position specifying where to check for matches.
+        positions: The positions to potentially modify.
+    Returns:
+        list: The positions that are allowable given the board.
+    '''
+    pass
+
+# used initially, and maybe by update_board in iteration
+def update_position(player_data, game_data, position):
+    ''' Updates a position on the board by changing it into a special candy or matching it.
+    Args:
+        player_data: The player data that will be updated.
+        game_data: The game data that will be updated.
+        position: A tuple representing the position of the board to update.
+    Returns:
+        list of lists: A list containing all the positions that were matched.
+    '''
+        
+    status, matches = check_consecutive(get_adjacent_matches(game_data[GAME_DATA_BOARD_KEY], position, set()))
+    matches_count = len(matches)
+    row, col = position
+
+    # Check for color bomb (5 consecutive candies).
+    # Append the first character of the candy it is associated with.
+    if (status == CONSEC_VERTICAL or status == CONSEC_HORIZONTAL) and matches_count >= 5:
+        candy = game_data[GAME_DATA_BOARD_KEY][row][col]
+        game_data[GAME_DATA_BOARD_KEY][row][col] = COLOR_BOMB[CANDIES_REP_STR_IDX] + candy
+
+    # Check for area bomb (3+ candies in both directions).
+    elif status == CONSEC_BOTH and matches_count >= 3:
+        game_data[GAME_DATA_BOARD_KEY][row][col] = AREA_BOMB[CANDIES_REP_STR_IDX]
+
+    # Check for line bomb (4 consecutive candies).
+    # Append a character representing the direction of the line, based on the consecutive matches.
+    elif (status == CONSEC_VERTICAL or status == CONSEC_HORIZONTAL) and matches_count >= 4:
+        game_data[GAME_DATA_BOARD_KEY][row][col] = LINE_BOMB[CANDIES_REP_STR_IDX] + 'V'
+
+    clear_candies(player_data, game_data, matches)
+    return matches
+
+def update_board(player_data, game_data):
+    '''Clears any matches and converts certain candy sequences to special candies.CLEAR AND REPLACE. (SAME TIME)
+    Args:
+        player_data: The player data to update.
+        game_data: The game data to update.
     Returns:
         boolean: Whether or not updates have occurred.
     '''
-    # Clear the matches, if there are supplied positions.
-    if pos1 != (-1, -1) and pos2 != (-1, -1):
-        status1, matches1 = check_consecutive(get_adjacent_matches(game_data[GAME_DATA_BOARD_KEY]), pos1, set())
-        status2, matches2 = check_consecutive(get_adjacent_matches(game_data[GAME_DATA_BOARD_KEY]), pos2, set())
+    checked = set()
+    all_matches = get_all_matches(game_data[GAME_DATA_BOARD_KEY], False)
+    
+    for match in all_matches:
+        if match in checked: continue
+        matches = tuple(update_position(player_data, game_data, match))
+        checked.update(matches)
 
-        
-        pass
-
+    # Display board after all the board updates.
     display_board(game_data[GAME_DATA_BOARD_KEY])
 
 def drop_candies(board):
@@ -556,11 +618,14 @@ def play(player_data, game_data):
     # Allow user to make moves while available.
     while difficulty_data[DIFFICULTY_MOVES_KEY] > 0:
         # Display game info.
-        level_str = f"\n   {GAME_DATA_LEVEL_KEY}: {game_data[GAME_DATA_LEVEL_KEY]}"
-        difficulty_str = str(game_data[GAME_DATA_DIFFICULTY_KEY][DIFFICULTY_STR_KEY]).rjust(BOARD_SIZE * TILE_SIZE + BOARD_SIZE - 1 - len(level_str))
+        level_str = f"{GAME_DATA_LEVEL_KEY}: {game_data[GAME_DATA_LEVEL_KEY]}".rjust(BOARD_SIZE * TILE_SIZE + BOARD_SIZE - 1)
+        difficulty_str = str(game_data[GAME_DATA_DIFFICULTY_KEY][DIFFICULTY_STR_KEY])
+        score_str = f"{GAME_DATA_SCORE_KEY}: {game_data[GAME_DATA_SCORE_KEY]}".rjust(BOARD_SIZE * TILE_SIZE + BOARD_SIZE - 1 - len(difficulty_str))
 
-        print(f"   {level_str}{difficulty_str}")
+        print(f"   {level_str}")
+        print(f"   {difficulty_str}{score_str}")
         display_board(game_data[GAME_DATA_BOARD_KEY])
+        print(f"{GAME_DATA_LIVES_KEY}: {game_data[GAME_DATA_LIVES_KEY]}")
         print(f"Moves left: {difficulty_data[DIFFICULTY_MOVES_KEY]}")
         print("Enter row and column (example: 1 2)")
         print("Or Q to quit")
@@ -626,6 +691,7 @@ def play(player_data, game_data):
             if not success:
                 swap(game_data[GAME_DATA_BOARD_KEY], (row, col), (new_row, new_col))
                 display_board(game_data[GAME_DATA_BOARD_KEY])
+                time.sleep(DELAY)
                 print("Unsuccessful swap.")
             else:
                 update = True
@@ -634,11 +700,16 @@ def play(player_data, game_data):
             if update:
                 # Lower the candies, then check for any possible matches to update the board.
                 # Stop when no updates can occur when candies are at their lowest.
-                update_board(game_data, (row, col), (new_row, new_col))
+                update_position(player_data, game_data, (row, col))
+                update_position(player_data, game_data, (new_row, new_col))
+                time.sleep(DELAY)
+                display_board(game_data[GAME_DATA_BOARD_KEY])
 
                 while True:
                     drop_candies(game_data[GAME_DATA_BOARD_KEY])
-                    updates = update_board(game_data)
+                    time.sleep(DELAY)
+                    updates = update_board(player_data, game_data)
+                    time.sleep(DELAY)
 
                     if not updates:
                         break

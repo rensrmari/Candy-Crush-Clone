@@ -28,6 +28,7 @@ def main():
 
         if user_input == 'P': # Play
             print('[PLAY]')
+            user_continue = ''
 
             # If a user does not have an empty board, ask them if they would like to continue their previous game.
             if not game_handler.is_empty(game_data[GAME_DATA_BOARD_KEY]):
@@ -35,7 +36,7 @@ def main():
                     
             # If user begins new game or the previous game is quit, start with a new board and game data.
             # Additionally, prompt user for difficulty.
-            if game_handler.is_empty(game_data) and not game_handler.in_progress(game_data) or user_continue == 'N':
+            if game_handler.is_empty(game_data[GAME_DATA_BOARD_KEY]) and not game_handler.in_progress(game_data) or user_continue == 'N':
                 game_handler.reset_game(game_data, False)
                 game_handler.change_difficulty(game_data)
             
@@ -131,7 +132,7 @@ def display_rules():
         print(f'\t{difficulty}')
         print(f'\t   {DIFFICULTY_MOVES_KEY.ljust(DIFFICULTY_EFFECT_PADDING)}: {DIFFICULTIES_EFFECTS[difficulty][DIFFICULTY_MOVES_KEY]}')
         print(f'\t   {DIFFICULTY_BLOCKERS_KEY.ljust(DIFFICULTY_EFFECT_PADDING)}: {DIFFICULTIES_EFFECTS[difficulty][DIFFICULTY_BLOCKERS_KEY]}')
-        print(f'\t   {DIFFICULTY_OBJECTIVES_KEY.ljust(DIFFICULTY_EFFECT_PADDING)}: {DIFFICULTIES_EFFECTS[difficulty][DIFFICULTY_OBJECTIVES_KEY]}')
+        print(f'\t   {DIFFICULTY_OBJECTIVES_KEY.ljust(DIFFICULTY_EFFECT_PADDING)}: {DIFFICULTIES_EFFECTS[difficulty][DIFFICULTY_OBJECTIVES_KEY][OBJECTIVES_COUNT_IDX]}')
 
     # Display candies and their colors.
     print('\nColors:')
