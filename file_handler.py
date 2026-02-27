@@ -146,7 +146,8 @@ def get_dir_idx(path, valid_paths):
         print(f'"{str(path)}" is not a usable directory.')
         return -1
 
-    user_num = input(f'Please enter the number of the directory (1{' - ' + str(num_directories) if num_directories > 1 else ''}): ')
+    range_text = f"1 - {num_directories}" if num_directories > 1 else "1"
+    user_num = input(f"Please enter the number of the directory ({range_text}): ")
     if not user_num.isdecimal() or int(user_num) <= 0 or int(user_num) > num_directories:
         print('Number does not correspond to a directory.')
         return -1
