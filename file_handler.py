@@ -14,30 +14,30 @@ def save_session(player_data, game_data):
     '''
 
     # Prompt user for a path to an existing directory.
-    p = Path(input('Please enter an existing directory: ')).absolute()
+    p = Path(input('\nPlease enter an existing directory: ')).absolute()
 
     # An invalid directory will result in the current working directory being used.
     if not p.is_dir():
-        print(f'{str(p)} is not a directory. Using "{Path.cwd()}".')
+        print(f'\n{str(p)} is not a directory. Using "{Path.cwd()}".')
         p = Path.cwd()
 
     # Prompt user for a name for the directory where the save data will be stored.
-    save_name = input('Please enter a name for the save data: ')
+    save_name = input('\nPlease enter a name for the save data: ')
     p /= save_name
 
     # If the name is already taken, create a unique name based off the original.
     # Otherwise, use a default name.
     if p.exists():
         p = p.parent / get_unique_name(p.parent, save_name)
-        print(f'"{save_name}" already exists. Using "{p.name}".')
+        print(f'\n"{save_name}" already exists. Using "{p.name}".')
 
     # Try creating the directory.
     try:
         os.makedirs(p)
         if p.is_dir():
-            print(f'Successfully created "{str(p)}".')
+            print(f'\nSuccessfully created "{str(p)}".')
     except FileExistsError: 
-        print(f'Error creating "{str(p)}".')
+        print(f'\nError creating "{str(p)}".')
         return
     p /= p.name
 
@@ -52,13 +52,16 @@ def save_session(player_data, game_data):
             # Game data.
             shelf_file[GAME_DATA_BOARD_KEY] = game_data[GAME_DATA_BOARD_KEY]
             shelf_file[GAME_DATA_LEVEL_KEY] = game_data[GAME_DATA_LEVEL_KEY]
-            shelf_file[GAME_DATA_SCORE_KEY] = game_data[GAME_DATA_SCORE_KEY]
-            shelf_file[GAME_DATA_LIVES_KEY] = game_data[GAME_DATA_LIVES_KEY]
-            shelf_file[GAME_DATA_IN_PROGRESS_KEY] = game_data[GAME_DATA_IN_PROGRESS_KEY]
             shelf_file[GAME_DATA_DIFFICULTY_KEY] = game_data[GAME_DATA_DIFFICULTY_KEY]
-        print(f'Successfully saved session data to "{p.parent.name}".')
+            shelf_file[GAME_DATA_SCORE_KEY] = game_data[GAME_DATA_SCORE_KEY]
+            shelf_file[GAME_DATA_OBJECTIVE_CANDY_KEY] = game_data[GAME_DATA_OBJECTIVE_CANDY_KEY]
+            shelf_file[GAME_DATA_LIVES_KEY] = game_data[GAME_DATA_LIVES_KEY]
+            shelf_file[GAME_DATA_EXISTS_KEY] = game_data[GAME_DATA_EXISTS_KEY]
+            shelf_file[GAME_DATA_IN_PROGRESS_KEY] = game_data[GAME_DATA_IN_PROGRESS_KEY]
+            shelf_file[GAME_DATA_GAME_OVER_KEY] = game_data[GAME_DATA_GAME_OVER_KEY]
+        print(f'\nSuccessfully saved session data to "{p.parent.name}".')
     except (KeyError, OSError): # Make sure variables exist and the file is able to be opened
-        print(f'Could not save session data to "{p.parent.name}".')
+        print(f'\nCould not save session data to "{p.parent.name}".')
 
 def load_file(player_data, game_data):
     '''Loads a save file into the player's data and game data.
@@ -89,13 +92,16 @@ def load_file(player_data, game_data):
             # Game data.
             game_data[GAME_DATA_BOARD_KEY] = shelf_file[GAME_DATA_BOARD_KEY]
             game_data[GAME_DATA_LEVEL_KEY] = shelf_file[GAME_DATA_LEVEL_KEY]
-            game_data[GAME_DATA_SCORE_KEY] = shelf_file[GAME_DATA_SCORE_KEY]
-            game_data[GAME_DATA_LIVES_KEY] = shelf_file[GAME_DATA_LIVES_KEY]
-            game_data[GAME_DATA_IN_PROGRESS_KEY] = shelf_file[GAME_DATA_IN_PROGRESS_KEY]
             game_data[GAME_DATA_DIFFICULTY_KEY] = shelf_file[GAME_DATA_DIFFICULTY_KEY]
-        print(f'Successfully loaded save data from "{p.parent.name}".')
+            game_data[GAME_DATA_SCORE_KEY] = shelf_file[GAME_DATA_SCORE_KEY]
+            game_data[GAME_DATA_OBJECTIVE_CANDY_KEY] = shelf_file[GAME_DATA_OBJECTIVE_CANDY_KEY]
+            game_data[GAME_DATA_LIVES_KEY] = shelf_file[GAME_DATA_LIVES_KEY]
+            game_data[GAME_DATA_EXISTS_KEY] = shelf_file[GAME_DATA_EXISTS_KEY]
+            game_data[GAME_DATA_IN_PROGRESS_KEY] = shelf_file[GAME_DATA_IN_PROGRESS_KEY]
+            game_data[GAME_DATA_GAME_OVER_KEY] = shelf_file[GAME_DATA_GAME_OVER_KEY]
+        print(f'\nSuccessfully loaded save data from "{p.parent.name}".')
     except (KeyError, OSError):
-        print(f'Could not load save data from "{p.parent.name}".')
+        print(f'\nCould not load save data from "{p.parent.name}".')
 
 def delete_file():
     '''Deletes a save file.'''
@@ -117,9 +123,9 @@ def delete_file():
     if user_confirm == "Y":
         try:
             shutil.rmtree(p.parent)
-            print(f'Successfully deleted save data from "{p.parent.name}".')
+            print(f'\nSuccessfully deleted save data from "{p.parent.name}".')
         except OSError:
-            print(f'An error occurred when deleting "{p.parent.name}".')
+            print(f'\nAn error occurred when deleting "{p.parent.name}".')
     else:
         print(f'"{p.parent.name}" has not been deleted.')
 
@@ -143,13 +149,13 @@ def get_dir_idx(path, valid_paths):
     # Determine which directory is used.
     num_directories = len(valid_numbers)
     if num_directories == 0:
-        print(f'"{str(path)}" is not a usable directory.')
+        print(f'\n"{str(path)}" is not a usable directory.')
         return -1
 
     range_text = f"1 - {num_directories}" if num_directories > 1 else "1"
-    user_num = input(f"Please enter the number of the directory ({range_text}): ")
+    user_num = input(f"\nPlease enter the number of the directory ({range_text}): ")
     if not user_num.isdecimal() or int(user_num) <= 0 or int(user_num) > num_directories:
-        print('Number does not correspond to a directory.')
+        print('\nNumber does not correspond to a directory.')
         return -1
 
     return int(user_num) - 1
@@ -165,7 +171,7 @@ def get_paths_to_saves():
 
     # Check if the directory is valid.
     if not p.is_dir():
-        print(f'"{str(p)}" is not a directory.')
+        print(f'\n"{str(p)}" is not a directory.')
         return (None, None)
 
     # Check if the directory contains valid save data.
@@ -173,7 +179,7 @@ def get_paths_to_saves():
     valid_dirs = get_valid_dirs(p)
 
     if len(valid_dirs) == 0:
-        print(f'No valid save data found in "{str(p)}".')
+        print(f'\nNo valid save data found in "{str(p)}".')
         return (None, None)
     
     return (p, valid_dirs)
@@ -199,10 +205,13 @@ def get_valid_dirs(path):
                         file.get(PLAYER_DATA_CANDIES_KEY, None),
                         file.get(GAME_DATA_BOARD_KEY, None),
                         file.get(GAME_DATA_LEVEL_KEY, None),
+                        file.get(GAME_DATA_DIFFICULTY_KEY, None),
                         file.get(GAME_DATA_SCORE_KEY, None),
+                        file.get(GAME_DATA_OBJECTIVE_CANDY_KEY, None),
                         file.get(GAME_DATA_LIVES_KEY, None),
+                        file.get(GAME_DATA_EXISTS_KEY, None),
                         file.get(GAME_DATA_IN_PROGRESS_KEY, None),
-                        file.get(GAME_DATA_DIFFICULTY_KEY, None)
+                        file.get(GAME_DATA_GAME_OVER_KEY, None)
                     ]
 
                 if None not in data:
