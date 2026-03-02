@@ -819,7 +819,8 @@ def play(player_data, game_data):
             game_data[GAME_DATA_LEVEL_KEY] += 1
             
             time.sleep(DELAY)
-            print(f"\nCleared Level {level} ({difficulty})!{" Personal Best!" if update_highest_level(player_data, level) else ""}")
+            print(f"\nCleared Level {level} ({difficulty})!"
+                  f"{' Personal Best!' if update_highest_level(player_data, level) else ''}")
             break
 
         # Show the user options.
