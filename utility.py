@@ -57,15 +57,15 @@ DIFFICULTIES_EFFECTS = {
         DIFFICULTY_MOVES_KEY: 25,
         DIFFICULTY_BLOCKERS_KEY: 3,
         DIFFICULTY_OBJECTIVE_COUNT_KEY: {
-            RED: 25,
-            BLUE: 25,
-            GREEN: 25,
-            YELLOW: 25,
-            PURPLE: 25,
+            RED: 30,
+            BLUE: 30,
+            GREEN: 30,
+            YELLOW: 30,
+            PURPLE: 30,
             COLOR_BOMB: 2,
-            LINE_BOMB: 3,
-            AREA_BOMB: 1,
-            BLOCKER: 5
+            LINE_BOMB: 5,
+            AREA_BOMB: 2,
+            BLOCKER: 7
         }
     },
 
@@ -74,15 +74,15 @@ DIFFICULTIES_EFFECTS = {
         DIFFICULTY_MOVES_KEY: 20,
         DIFFICULTY_BLOCKERS_KEY: 5,
         DIFFICULTY_OBJECTIVE_COUNT_KEY: {
-            RED: 35,
-            BLUE: 35,
-            GREEN: 35,
-            YELLOW: 35,
-            PURPLE: 35,
+            RED: 40,
+            BLUE: 40,
+            GREEN: 40,
+            YELLOW: 40,
+            PURPLE: 40,
             COLOR_BOMB: 3,
-            LINE_BOMB: 5,
-            AREA_BOMB: 3,
-            BLOCKER: 10
+            LINE_BOMB: 8,
+            AREA_BOMB: 4,
+            BLOCKER: 15
         }
     }
 }

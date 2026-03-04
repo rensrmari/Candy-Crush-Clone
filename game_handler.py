@@ -229,11 +229,9 @@ def get_possible_directions(board, position):
     Returns:
         list of tuples: A list of positions.
     '''
-
     positions = []
     row = position[0]
     col = position[1]
-    candy = board[row][col]
 
     left = col - 1
     right = col + 1
@@ -527,6 +525,8 @@ def clear_candies(player_data, game_data, positions):
         # Then, clear the candy from the board.
         for pos in pos_to_clear:
             candy = get_pos_info(board, pos)
+            if candy == EMPTY: continue
+
             if candy == game_data[GAME_DATA_OBJECTIVE_CANDY_KEY]:
                 game_data[GAME_DATA_DIFFICULTY_KEY][DIFFICULTY_OBJECTIVE_COUNT_KEY][candy] -= 1
 
@@ -536,8 +536,7 @@ def clear_candies(player_data, game_data, positions):
             # Remove the string at this position from the board.
             board[pos[0]][pos[1]] = ''
 
-        # Update the score.
-        points += len(pos_to_clear)
+            points += 1
 
     game_data[GAME_DATA_SCORE_KEY] += points
     return points
